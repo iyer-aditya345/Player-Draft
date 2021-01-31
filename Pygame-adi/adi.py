@@ -114,6 +114,7 @@ for i in range(0,5):
 for i in l:
     klist.append(i[11])
 r=StringVar()
+totalcost=0
 def draft_screen():
     global screenlist
     root.withdraw()
@@ -154,8 +155,8 @@ def draft_screen():
         for i,c in enumerate(value):
             if c.isdigit():
                 pos=i
-        x=value[:(pos-1)]
-        x=str('"')+x+str('"')
+        mg=value[:(pos-1)]
+        x=str('"')+mg+str('"')
         sql2="select * from newteam" #team being the dummy table to store the players
         exists=False
         mycur.execute(sql2)
@@ -166,59 +167,68 @@ def draft_screen():
         name=x.strip('"')
         if name in nm:
             exists=True
-        
+        for i in screenlist:
+            if mg == i[0]:
+                cost=i[1]
         lx =[]
+        affordable=True
         if len(res)<=4:
             z=messagebox.askyesno("new team member","{} is now in your team".format(x)+str("  Are you sure about this"))
             if exists==False:
-                if z==True:
-                    sql = "insert into newteam(Jersey_number,Name,Position,Overall,Shooting_Outside,Shooting_inside,Defense_outside,Defense_inside,Passing,image,points,img1,cost) select * from myteam where Name={}".format(x)
-                    mycur.execute(sql)
-                    
-                    db.commit()
-                    lx=[]
-                    x=detect(value)
-                    
-                    if x=="r1":
-                        r1.config(value=(teamlist[c2+5]+" 0"),image=eval(klist[c2+5]))
-                        screenlist.pop(0)
-                        for i in l:
-                            if i[1]==teamlist[c2+5]:
-                                newc=i[12]
-                        screenlist.insert(0,(teamlist[c2+5],newc))
-                    elif x=="r2":
-                        r2.config(value=(teamlist[c2+5]+" 1"),image=eval(klist[c2+5]))
-                        screenlist.pop(1)
-                        for i in l:
-                            if i[1]==teamlist[c2+5]:
-                                newc=i[12]
-                        screenlist.insert(1,(teamlist[c2+5],newc))
-                    elif x=="r3":
-                        r3.config(value=(teamlist[c2+5]+" 2"),image=eval(klist[c2+5]))
-                        screenlist.pop(2)
-                        for i in l:
-                            if i[1]==teamlist[c2+5]:
-                                newc=i[12]
-                        screenlist.insert(2,(teamlist[c2+5],newc))
-                    elif x=="r4":
-                        r4.config(value=(teamlist[c2+5]+" 3"),image=eval(klist[c2+5]))
-                        screenlist.pop(3)
-                        for i in l:
-                            if i[1]==teamlist[c2+5]:
-                                newc=i[12]
-                        screenlist.insert(3,(teamlist[c2+5],newc))
-                    elif x=="r5":
-                        r5.config(value=(teamlist[c2+5]+" 4"),image=eval(klist[c2+5]))
-                        screenlist.pop(4)
-                        for i in l:
-                            if i[1]==teamlist[c2+5]:
-                                newc=i[12]
-                        screenlist.insert(4,(teamlist[c2+5],newc))
-                    c2+=1
-                
-            else:
+                budget=5000-totalcost
+                if budget-cost<0:
+                    affordable=False
+                print(affordable)
+                if affordable==True:
+                    if z==True:
+                        sql = "insert into newteam(Jersey_number,Name,Position,Overall,Shooting_Outside,Shooting_inside,Defense_outside,Defense_inside,Passing,image,points,img1,cost) select * from myteam where Name={}".format(x)
+                        mycur.execute(sql)
+                        
+                        db.commit()
+                        lx=[]
+                        x=detect(value)
+                        
+                        if x=="r1":
+                            r1.config(value=(teamlist[c2+5]+" 0"),image=eval(klist[c2+5]))
+                            screenlist.pop(0)
+                            for i in l:
+                                if i[1]==teamlist[c2+5]:
+                                    newc=i[12]
+                            screenlist.insert(0,(teamlist[c2+5],newc))
+                        elif x=="r2":
+                            r2.config(value=(teamlist[c2+5]+" 1"),image=eval(klist[c2+5]))
+                            screenlist.pop(1)
+                            for i in l:
+                                if i[1]==teamlist[c2+5]:
+                                    newc=i[12]
+                            screenlist.insert(1,(teamlist[c2+5],newc))
+                        elif x=="r3":
+                            r3.config(value=(teamlist[c2+5]+" 2"),image=eval(klist[c2+5]))
+                            screenlist.pop(2)
+                            for i in l:
+                                if i[1]==teamlist[c2+5]:
+                                    newc=i[12]
+                            screenlist.insert(2,(teamlist[c2+5],newc))
+                        elif x=="r4":
+                            r4.config(value=(teamlist[c2+5]+" 3"),image=eval(klist[c2+5]))
+                            screenlist.pop(3)
+                            for i in l:
+                                if i[1]==teamlist[c2+5]:
+                                    newc=i[12]
+                            screenlist.insert(3,(teamlist[c2+5],newc))
+                        elif x=="r5":
+                            r5.config(value=(teamlist[c2+5]+" 4"),image=eval(klist[c2+5]))
+                            screenlist.pop(4)
+                            for i in l:
+                                if i[1]==teamlist[c2+5]:
+                                    newc=i[12]
+                            screenlist.insert(4,(teamlist[c2+5],newc))
+                        c2+=1
+                    else:
+                        messagebox.showerror("Error","You have selected this player already")
+                else:
 
-                messagebox.showerror("Error","You have selected this player already")
+                    messagebox.showerror("Error","You don't have enough money to buy this player")
                 
     
             
@@ -261,13 +271,14 @@ def draft_screen():
             else:
                 labels[i].place(x=500,y=10+(30*(i-52)))
     def calculator():
+        global totalcost
         new3=Toplevel(new)
         new3.geometry("500x500")
         new3.configure(background="black")
         sql="select * from newteam"
         mycur.execute(sql)
         res=mycur.fetchall()
-        totalcost=0
+        
         plycost=[]
         for i in res:
             totalcost+=i[12]
